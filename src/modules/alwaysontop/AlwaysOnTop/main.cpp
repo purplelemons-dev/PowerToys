@@ -56,8 +56,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             {
                 Logger::trace(L"PowerToys runner exited.");
             }
-            trace.UpdateState(false);
-            trace.Flush();
 
             Logger::trace(L"Exiting AlwaysOnTop");
             PostThreadMessage(mainThreadId, WM_QUIT, 0, 0);
@@ -72,8 +70,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     Trace::AlwaysOnTop::UnregisterProvider();
 
-    trace.UpdateState(false);
     trace.Flush();
+    trace.UpdateState(false);
 
     return 0;
 }
