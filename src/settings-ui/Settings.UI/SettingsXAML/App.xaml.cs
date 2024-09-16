@@ -21,7 +21,6 @@ using PowerToys.Interop;
 using Windows.UI.Popups;
 using WinRT.Interop;
 using WinUIEx;
-using WSACrashHelper;
 
 namespace Microsoft.PowerToys.Settings.UI
 {
