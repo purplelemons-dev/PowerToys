@@ -159,6 +159,10 @@ namespace Microsoft.PowerToys.Settings.UI.ViewModels
             {
                 _fileWatcher = Helper.GetFileWatcher(string.Empty, UpdatingSettings.SettingsFile, dispatcherAction);
             }
+
+            // Diagnostic data retention policy
+            string etwDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\\PowerToys\\etw");
+            DeleteDiagnosticDataOlderThan28Days(etwDirPath);
         }
 
         private static bool _isDevBuild;
@@ -1094,9 +1098,6 @@ namespace Microsoft.PowerToys.Settings.UI.ViewModels
         {
             string etwDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\\PowerToys\\etw");
             string tracerptPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "system32");
-
-            // Retention policy
-            DeleteDiagnosticDataOlderThan28Days(etwDirPath);
 
             ETLConverter converter = new ETLConverter(etwDirPath, tracerptPath);
             Task.Run(() => converter.ConvertDiagnosticsETLsAsync()).Wait();
