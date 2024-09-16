@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using global::PowerToys.GPOWrapper;
 using ManagedCommon;
+using Microsoft.PowerToys.Settings.UI.Helpers;
 using Microsoft.PowerToys.Settings.UI.Library;
 using Microsoft.PowerToys.Settings.UI.Library.Helpers;
 using Microsoft.PowerToys.Settings.UI.Library.Interfaces;
@@ -1060,6 +1061,51 @@ namespace Microsoft.PowerToys.Settings.UI.ViewModels
             EnableDataDiagnostics = DataDiagnosticsSettings.GetEnabledValue();
 
             NotifyPropertyChanged(nameof(EnableDataDiagnostics));
+        }
+
+        // Per retention policy
+        private void DeleteDiagnosticDataOlderThan28Days(string etwDirPath)
+        {
+            if (!Directory.Exists(etwDirPath))
+            {
+                return;
+            }
+
+            var directoryInfo = new DirectoryInfo(etwDirPath);
+            var cutoffDate = DateTime.Now.AddDays(-28);
+
+            foreach (var file in directoryInfo.GetFiles())
+            {
+                if (file.LastWriteTime < cutoffDate)
+                {
+                    try
+                    {
+                        file.Delete();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to delete file: {file.FullName}. Error: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        internal void ViewDiagnosticData()
+        {
+            string etwDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\\PowerToys\\etw");
+            string tracerptPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "system32");
+
+            // Retention policy
+            DeleteDiagnosticDataOlderThan28Days(etwDirPath);
+
+            ETLConverter converter = new ETLConverter(etwDirPath, tracerptPath);
+            Task.Run(() => converter.ConvertDiagnosticsETLsAsync()).Wait();
+
+            if (Directory.Exists(etwDirPath))
+            {
+                // Open etw dir in FileExplorer
+                Process.Start("explorer.exe", etwDirPath);
+            }
         }
     }
 }

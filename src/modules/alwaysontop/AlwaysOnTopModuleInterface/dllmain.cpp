@@ -221,6 +221,10 @@ private:
             Trace::AlwaysOnTop::Enable(false);
         }
 
+        // Wait for 1.5 seconds for the process to end process correctly and stop etw tracer
+        WaitForSingleObject(m_hProcess, 1500);
+
+        // If process is still running, terminate it
         if (m_hProcess)
         {
             TerminateProcess(m_hProcess, 0);

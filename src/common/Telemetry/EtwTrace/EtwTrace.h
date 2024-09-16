@@ -15,6 +15,9 @@ namespace Shared
         class ETWTrace
         {
         public:
+            static inline const wchar_t* PowerToysProviderGUID = L"{38e8889b-9731-53f5-e901-e8a7c1753074}";
+
+            ETWTrace();
             ETWTrace(const std::wstring& providerGUID);
             ETWTrace(const GUID& providerGUID);
             ~ETWTrace();

@@ -18,7 +18,7 @@ const std::wstring instanceMutexName = L"Local\\PowerToys_AlwaysOnTop_InstanceMu
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nCmdShow)
 {
-    Shared::Trace::ETWTrace trace{ L"{38e8889b-9731-53f5-e901-e8a7c1753074}" };
+    Shared::Trace::ETWTrace trace;
     trace.UpdateState(true);
 
     winrt::init_apartment();
@@ -47,7 +47,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     if (!pid.empty())
     {
         auto mainThreadId = GetCurrentThreadId();
-        ProcessWaiter::OnProcessTerminate(pid, [mainThreadId, &trace](int err) {
+        ProcessWaiter::OnProcessTerminate(pid, [mainThreadId](int err) {
             if (err != ERROR_SUCCESS)
             {
                 Logger::error(L"Failed to wait for parent process exit. {}", get_last_error_or_default(err));
@@ -56,8 +56,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             {
                 Logger::trace(L"PowerToys runner exited.");
             }
-            trace.UpdateState(false);
-            trace.Flush();
 
             Logger::trace(L"Exiting AlwaysOnTop");
             PostThreadMessage(mainThreadId, WM_QUIT, 0, 0);
@@ -72,8 +70,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     Trace::AlwaysOnTop::UnregisterProvider();
 
-    trace.UpdateState(false);
     trace.Flush();
+    trace.UpdateState(false);
 
     return 0;
 }
