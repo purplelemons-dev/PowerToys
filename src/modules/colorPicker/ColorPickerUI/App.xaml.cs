@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using ColorPicker.Mouse;
 using ManagedCommon;
+using Microsoft.PowerToys.Telemetry;
 
 namespace ColorPickerUI
 {
@@ -16,6 +17,7 @@ namespace ColorPickerUI
     /// </summary>
     public partial class App : Application, IDisposable
     {
+        private ETWTrace etwTrace = new ETWTrace();
         private Mutex _instanceMutex;
         private static string[] _args;
         private int _powerToysRunnerPid;
@@ -28,6 +30,7 @@ namespace ColorPickerUI
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            etwTrace.Start();
             NativeThreadCTS = new CancellationTokenSource();
             ExitToken = NativeThreadCTS.Token;
 
@@ -81,6 +84,7 @@ namespace ColorPickerUI
                 if (disposing)
                 {
                     _instanceMutex?.Dispose();
+                    etwTrace?.Dispose();
                 }
 
                 disposedValue = true;

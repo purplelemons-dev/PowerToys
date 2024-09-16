@@ -386,6 +386,7 @@
                                 <tkcontrols:SettingsCard
                                     x:Uid="GeneralPage_ViewDiagnosticDataViewer"
                                     ActionIcon="{ui:FontIcon Glyph=&#xE8A7;}"
+                                    Click="ViewDiagnosticData_Click"
                                     IsClickEnabled="True"
                                     IsEnabled="{x:Bind ViewModel.EnableViewDataDiagnostics, Mode=TwoWay}" />
                             </tkcontrols:SettingsExpander.Items>

@@ -14,6 +14,9 @@ namespace fs = std::filesystem;
 
 namespace
 {
+    constexpr inline const wchar_t* DataDiagnosticsRegKey = L"Software\\Classes\\PowerToys";
+    constexpr inline const wchar_t* ViewDataDiagnosticsRegValueName = L"DataDiagnosticsViewEnabled";
+
     inline std::wstring get_root_save_folder_location()
     {
         PWSTR local_app_path;
@@ -29,12 +32,51 @@ namespace
         }
         return result;
     }
+
+    bool isViewDataDiagnosticEnabled()
+    {
+        HKEY key{};
+        if (RegOpenKeyExW(HKEY_CURRENT_USER,
+                          DataDiagnosticsRegKey,
+                          0,
+                          KEY_READ,
+                          &key) != ERROR_SUCCESS)
+        {
+            return false;
+        }
+
+        DWORD isDataDiagnosticsEnabled = 0;
+        DWORD size = sizeof(isDataDiagnosticsEnabled);
+
+        if (RegGetValueW(
+                HKEY_CURRENT_USER,
+                DataDiagnosticsRegKey,
+                ViewDataDiagnosticsRegValueName,
+                RRF_RT_REG_DWORD,
+                nullptr,
+                &isDataDiagnosticsEnabled,
+                &size) != ERROR_SUCCESS)
+        {
+            RegCloseKey(key);
+            return false;
+        }
+        RegCloseKey(key);
+
+        return isDataDiagnosticsEnabled;
+    }
+
 }
 
 namespace Shared
 {
     namespace Trace
     {
+        ETWTrace::ETWTrace() :
+            ETWTrace(PowerToysProviderGUID)
+        {
+
+        }
+
         ETWTrace::ETWTrace(const std::wstring& providerGUIDstr)
         {
             GUID id;
@@ -157,6 +199,11 @@ namespace Shared
         void ETWTrace::Start()
         {
             if (m_tracing)
+            {
+                return;
+            }
+
+            if (!isViewDataDiagnosticEnabled())
             {
                 return;
             }

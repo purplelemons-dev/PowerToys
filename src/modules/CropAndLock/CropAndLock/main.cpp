@@ -37,9 +37,6 @@ bool m_running = true;
 
 int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _In_ int)
 {
-    Shared::Trace::ETWTrace trace{ L"{38e8889b-9731-53f5-e901-e8a7c1753074}" };
-    trace.UpdateState(true);
-
     // Initialize COM
     winrt::init_apartment(winrt::apartment_type::single_threaded);
 
@@ -202,6 +199,9 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _I
     }
 
     m_event_triggers_thread = std::thread([&]() {
+        Shared::Trace::ETWTrace trace;
+        trace.UpdateState(true);
+
         MSG msg;
         HANDLE event_handles[3] = {m_reparent_event_handle, m_thumbnail_event_handle, m_exit_event_handle};
         while (m_running)
@@ -255,6 +255,8 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _I
                 break;
             }
         }
+        trace.Flush();
+        trace.UpdateState(false);
     });
 
     // Message pump
@@ -272,9 +274,6 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _I
     CloseHandle(m_thumbnail_event_handle);
     CloseHandle(m_exit_event_handle);
     m_event_triggers_thread.join();
-
-    trace.UpdateState(false);
-    trace.Flush();
 
     return util::ShutdownDispatcherQueueControllerAndWait(controller, static_cast<int>(msg.wParam));
 }
