@@ -14,7 +14,6 @@
 
 #include <common/comUtils/comUtils.h>
 #include <common/display/dpi_aware.h>
-#include <common/Telemetry/EtwTrace/EtwTrace.h>
 #include <common/notifications/notifications.h>
 #include <common/notifications/dont_show_again.h>
 #include <common/updating/installer.h>
@@ -89,6 +88,43 @@ void open_menu_from_another_instance(std::optional<std::string> settings_window)
         msg = static_cast<LPARAM>(ESettingsWindowNames_from_string(settings_window.value()));
     }
     PostMessageW(hwnd_main, WM_COMMAND, ID_SETTINGS_MENU_COMMAND, msg);
+}
+
+DWORD g_etw_trace_process_id = 0;
+
+void run_etw_trace()
+{
+    PROCESS_INFORMATION process_info = { 0 };
+
+    // Arg 1: executable path.
+    std::wstring executable_path = get_module_folderpath();
+
+    executable_path.append(L"\\PowerToys.EtwTrace.exe");
+
+    // Arg 2: process pid.
+    DWORD powertoys_pid = GetCurrentProcessId();
+
+    std::wstring executable_args = fmt::format(L"\"{}\" {}",
+                                                executable_path,
+                                                std::to_wstring(powertoys_pid));
+
+    STARTUPINFO startup_info = { sizeof(startup_info) };
+    if (!CreateProcessW(executable_path.c_str(),
+                        executable_args.data(),
+                        nullptr,
+                        nullptr,
+                        FALSE,
+                        0,
+                        nullptr,
+                        nullptr,
+                        &startup_info,
+                        &process_info))
+    {
+        // error
+    }
+
+    g_etw_trace_process_id = process_info.dwProcessId;
+
 }
 
 int runner(bool isProcessElevated, bool openSettings, std::string settingsWindow, bool openOobe, bool openScoobe, bool showRestartNotificationAfterUpdate)
@@ -303,9 +339,6 @@ toast_notification_handler_result toast_notification_handler(const std::wstring_
 
 int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR lpCmdLine, int /*nCmdShow*/)
 {
-    Shared::Trace::ETWTrace trace{ L"{38e8889b-9731-53f5-e901-e8a7c1753074}" };
-    trace.UpdateState(true);
-
     Gdiplus::GdiplusStartupInput gpStartupInput;
     ULONG_PTR gpToken;
     GdiplusStartup(&gpToken, &gpStartupInput, NULL);
@@ -323,6 +356,8 @@ int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR l
         L"S:"
         L"(ML;;NX;;;LW)"; // Integrity label on No execute up for Low mandatory level
     initializeCOMSecurity(securityDescriptor);
+
+    run_etw_trace();
 
     int n_cmd_args = 0;
     LPWSTR* cmd_arg_list = CommandLineToArgvW(GetCommandLineW(), &n_cmd_args);
@@ -482,9 +517,6 @@ int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPSTR l
         MessageBoxW(nullptr, std::wstring(err_what.begin(), err_what.end()).c_str(), GET_RESOURCE_STRING(IDS_ERROR).c_str(), MB_OK | MB_ICONERROR);
         result = -1;
     }
-
-    trace.UpdateState(false);
-    trace.Flush();
 
     // We need to release the mutexes to be able to restart the application
     if (msi_mutex)

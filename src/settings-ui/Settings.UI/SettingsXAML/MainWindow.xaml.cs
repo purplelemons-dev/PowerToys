@@ -20,12 +20,8 @@ namespace Microsoft.PowerToys.Settings.UI
     /// <summary>
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainWindow : WindowEx, IDisposable
+    public sealed partial class MainWindow : WindowEx
     {
-        private ETWTrace etwTrace = new ETWTrace();
-
-        private bool _disposed;
-
         public MainWindow(bool createHidden = false)
         {
             var bootTime = new System.Diagnostics.Stopwatch();
@@ -214,7 +210,6 @@ namespace Microsoft.PowerToys.Settings.UI
             if (App.GetOobeWindow() == null)
             {
                 App.ClearSettingsWindow();
-                Dispose();
             }
             else
             {
@@ -244,27 +239,6 @@ namespace Microsoft.PowerToys.Settings.UI
         internal void EnsurePageIsSelected()
         {
             ShellPage.EnsurePageIsSelected();
-        }
-
-        public void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                etwTrace?.Dispose();
-            }
-
-            _disposed = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
     }
 }

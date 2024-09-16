@@ -15,8 +15,6 @@
 #include <common/utils/UnhandledExceptionHandler.h>
 #include <common/utils/winapi_error.h>
 
-#include <common/Telemetry/EtwTrace/EtwTrace.h>
-
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 namespace winrt
@@ -199,9 +197,6 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _I
     }
 
     m_event_triggers_thread = std::thread([&]() {
-        Shared::Trace::ETWTrace trace;
-        trace.UpdateState(true);
-
         MSG msg;
         HANDLE event_handles[3] = {m_reparent_event_handle, m_thumbnail_event_handle, m_exit_event_handle};
         while (m_running)
@@ -255,8 +250,6 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ PWSTR lpCmdLine, _I
                 break;
             }
         }
-        trace.Flush();
-        trace.UpdateState(false);
     });
 
     // Message pump

@@ -27,9 +27,6 @@ const std::wstring instanceMutexName = L"Local\\PowerToys_FancyZones_InstanceMut
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR lpCmdLine, _In_ int nCmdShow)
 {
-    Shared::Trace::ETWTrace trace{ L"{38e8889b-9731-53f5-e901-e8a7c1753074}" };
-    trace.UpdateState(true);
-
     winrt::init_apartment();
     LoggerHelpers::init_logger(moduleName, internalPath, LogSettings::fancyZonesLoggerName);
 
@@ -87,9 +84,5 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     run_message_loop();
 
     Trace::UnregisterProvider();
-
-    trace.UpdateState(false);
-    trace.Flush();
-
     return 0;
 }
