@@ -28,6 +28,9 @@
                 "PowerToys.GPOWrapperProjection.dll",
                 "PowerToys.AllExperiments.dll",
 
+                "PowerToys.EtwTrace.dll",
+                "PowerToys.EtwTrace.exe",
+
                 "PowerToys.AlwaysOnTop.exe",
                 "PowerToys.AlwaysOnTopModuleInterface.dll",
 
